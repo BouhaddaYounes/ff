@@ -34,7 +34,7 @@
     <div class="container py-4">
         <!-- Summary Cards -->
         <div class="row g-4 mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
@@ -49,31 +49,46 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                                <i class="bi bi-check-circle text-success fs-4"></i>
+                            <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                                <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
                             </div>
                             <div class="ms-3">
-                                <h6 class="card-subtitle mb-1 text-muted">Completed</h6>
-                                <h3 class="card-title mb-0" id="completed-tasks">0</h3>
+                                <h6 class="card-subtitle mb-1 text-muted">Very Important</h6>
+                                <h3 class="card-title mb-0" id="very-important-tasks">0</h3>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-danger bg-opacity-10 p-3">
-                                <i class="bi bi-exclamation-circle text-danger fs-4"></i>
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                                <i class="bi bi-star text-warning fs-4"></i>
                             </div>
                             <div class="ms-3">
-                                <h6 class="card-subtitle mb-1 text-muted">High Priority</h6>
-                                <h3 class="card-title mb-0" id="high-priority-tasks">0</h3>
+                                <h6 class="card-subtitle mb-1 text-muted">Important</h6>
+                                <h3 class="card-title mb-0" id="important-tasks">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                                <i class="bi bi-arrow-down-circle text-info fs-4"></i>
+                            </div>
+                            <div class="ms-3">
+                                <h6 class="card-subtitle mb-1 text-muted">Not Important</h6>
+                                <h3 class="card-title mb-0" id="not-important-tasks">0</h3>
                             </div>
                         </div>
                     </div>

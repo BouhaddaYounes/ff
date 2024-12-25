@@ -72,8 +72,8 @@ class DbService {
         try {
             const dateAdded = new Date();
             const insertId = await new Promise((resolve, reject) => {
-                const query = "INSERT INTO names (name, priority, date_added, user_id, completed) VALUES (?,?,?,?,?);";
-                connection.query(query, [name, priority, dateAdded, userId, false], (err, result) => {
+                const query = "INSERT INTO names (name, priority, date_added, user_id) VALUES (?,?,?,?);";
+                connection.query(query, [name, priority, dateAdded, userId], (err, result) => {
                     if (err) reject(new Error(err.message));
                     resolve(result.insertId);
                 });
@@ -82,8 +82,7 @@ class DbService {
                 id: insertId,
                 name: name,
                 priority: priority,
-                dateAdded: dateAdded,
-                completed: false
+                dateAdded: dateAdded
             };
         } catch (error) {
             console.log(error);
@@ -107,12 +106,12 @@ class DbService {
         }
     }
 
-    async updateNameById(id, name, priority, userId, completed) {
+    async updateNameById(id, name, priority, userId) {
         try {
             id = parseInt(id, 10); 
             const response = await new Promise((resolve, reject) => {
-                const query = "UPDATE names SET name = ?, priority = ?, completed = ? WHERE id = ? AND user_id = ?";
-                connection.query(query, [name, priority, completed, id, userId], (err, result) => {
+                const query = "UPDATE names SET name = ?, priority = ? WHERE id = ? AND user_id = ?";
+                connection.query(query, [name, priority, id, userId], (err, result) => {
                     if (err) reject(new Error(err.message));
                     resolve(result.affectedRows);
                 });
@@ -146,40 +145,7 @@ class DbService {
                 const query = "SELECT COUNT(*) as count FROM names WHERE user_id = ?;";
                 connection.query(query, [userId], (err, results) => {
                     if (err) reject(new Error('Error getting total tasks: ' + err.message));
-                    resolve(results && results[0] ? results[0].count : 0);
-                });
-            });
-
-            // Get completed tasks count (add completed column if it doesn't exist)
-            await new Promise((resolve, reject) => {
-                const query = "SHOW COLUMNS FROM names LIKE 'completed';";
-                connection.query(query, (err, results) => {
-                    if (err) reject(err);
-                    if (results.length === 0) {
-                        connection.query("ALTER TABLE names ADD COLUMN completed BOOLEAN DEFAULT FALSE;", (err) => {
-                            if (err) reject(err);
-                            resolve();
-                        });
-                    } else {
-                        resolve();
-                    }
-                });
-            });
-
-            const completedTasks = await new Promise((resolve, reject) => {
-                const query = "SELECT COUNT(*) as count FROM names WHERE user_id = ? AND completed = TRUE;";
-                connection.query(query, [userId], (err, results) => {
-                    if (err) reject(new Error('Error getting completed tasks: ' + err.message));
-                    resolve(results && results[0] ? results[0].count : 0);
-                });
-            });
-
-            // Get high priority tasks count
-            const highPriorityTasks = await new Promise((resolve, reject) => {
-                const query = "SELECT COUNT(*) as count FROM names WHERE user_id = ? AND priority = 'very important';";
-                connection.query(query, [userId], (err, results) => {
-                    if (err) reject(new Error('Error getting high priority tasks: ' + err.message));
-                    resolve(results && results[0] ? results[0].count : 0);
+                    resolve(results[0].count);
                 });
             });
 
@@ -187,35 +153,77 @@ class DbService {
             const priorityDistribution = await new Promise((resolve, reject) => {
                 const query = `
                     SELECT 
-                        priority,
-                        COUNT(*) as count
+                        COUNT(CASE WHEN priority = 'not important' THEN 1 END) as notImportant,
+                        COUNT(CASE WHEN priority = 'important' THEN 1 END) as important,
+                        COUNT(CASE WHEN priority = 'very important' THEN 1 END) as veryImportant
                     FROM names 
-                    WHERE user_id = ?
-                    GROUP BY priority;
+                    WHERE user_id = ?;
                 `;
                 connection.query(query, [userId], (err, results) => {
                     if (err) reject(new Error('Error getting priority distribution: ' + err.message));
-                    const distribution = {
-                        notImportant: 0,
-                        important: 0,
-                        veryImportant: 0
-                    };
-                    if (results) {
-                        results.forEach(row => {
-                            if (row.priority === 'not important') distribution.notImportant = row.count;
-                            else if (row.priority === 'important') distribution.important = row.count;
-                            else if (row.priority === 'very important') distribution.veryImportant = row.count;
-                        });
-                    }
-                    resolve(distribution);
+                    resolve({
+                        notImportant: results[0].notImportant || 0,
+                        important: results[0].important || 0,
+                        veryImportant: results[0].veryImportant || 0
+                    });
                 });
             });
 
+            // Get tasks over time (last 7 days)
+            const tasksOverTime = await new Promise((resolve, reject) => {
+                const query = `
+                    SELECT DATE(date_added) as date, COUNT(*) as count
+                    FROM names 
+                    WHERE user_id = ? 
+                    AND date_added >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                    GROUP BY DATE(date_added)
+                    ORDER BY date;
+                `;
+                connection.query(query, [userId], (err, results) => {
+                    if (err) reject(new Error('Error getting tasks timeline: ' + err.message));
+                    
+                    // Format the results
+                    const dates = [];
+                    const counts = [];
+                    results.forEach(row => {
+                        dates.push(new Date(row.date).toLocaleDateString());
+                        counts.push(row.count);
+                    });
+                    
+                    resolve({
+                        dates: dates,
+                        counts: counts
+                    });
+                });
+            });
+
+            // Get recent tasks
+            const recentTasks = await new Promise((resolve, reject) => {
+                const query = `
+                    SELECT name, priority, date_added
+                    FROM names 
+                    WHERE user_id = ?
+                    ORDER BY date_added DESC 
+                    LIMIT 5;
+                `;
+                connection.query(query, [userId], (err, results) => {
+                    if (err) reject(new Error('Error getting recent tasks: ' + err.message));
+                    resolve(results.map(task => ({
+                        ...task,
+                        date_added: new Date(task.date_added).toLocaleString()
+                    })));
+                });
+            });
+
+            // Combine all data
             return {
                 totalTasks,
-                completedTasks,
-                highPriorityTasks,
-                priorityDistribution
+                completedTasks: 0, // Placeholder for future implementation
+                pendingTasks: totalTasks,
+                highPriorityTasks: priorityDistribution.veryImportant,
+                priorityDistribution,
+                tasksOverTime,
+                recentTasks
             };
         } catch (error) {
             console.error('Error in getDashboardData:', error);

@@ -75,7 +75,7 @@ async function loadDashboardData() {
 
         const dashboardData = data.data;
         updateSummaryCards(dashboardData);
-        createPriorityChart(dashboardData.priorityDistribution);
+        createPriorityChart(dashboardData);
 
     } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -94,49 +94,54 @@ function clearCharts() {
 
 // Update summary cards with current statistics
 function updateSummaryCards(data) {
-    if (!data) return;
+    if (!data || !data.priorityDistribution) return;
     
     document.getElementById('total-tasks').textContent = data.totalTasks || 0;
-    document.getElementById('completed-tasks').textContent = data.completedTasks || 0;
-    document.getElementById('high-priority-tasks').textContent = data.highPriorityTasks || 0;
+    document.getElementById('very-important-tasks').textContent = data.priorityDistribution.veryImportant || 0;
+    document.getElementById('important-tasks').textContent = data.priorityDistribution.important || 0;
+    document.getElementById('not-important-tasks').textContent = data.priorityDistribution.notImportant || 0;
 }
 
 // Create the priority distribution pie chart
 function createPriorityChart(data) {
+    if (!data) return;
+    
+    clearCharts();
+    
     const ctx = document.getElementById('priority-chart').getContext('2d');
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) {
-        existingChart.destroy();
-    }
-
     new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['Not Important', 'Important', 'Very Important'],
+            labels: ['Very Important', 'Important', 'Not Important'],
             datasets: [{
                 data: [
-                    data.notImportant || 0,
-                    data.important || 0,
-                    data.veryImportant || 0
+                    data.priorityDistribution.veryImportant || 0,
+                    data.priorityDistribution.important || 0,
+                    data.priorityDistribution.notImportant || 0
                 ],
                 backgroundColor: [
-                    'rgba(108, 117, 125, 0.8)',  // gray for not important
-                    'rgba(255, 193, 7, 0.8)',    // yellow for important
-                    'rgba(220, 53, 69, 0.8)'     // red for very important
+                    'rgba(220, 53, 69, 0.8)',  // Very Important - Red
+                    'rgba(255, 193, 7, 0.8)',  // Important - Yellow
+                    'rgba(23, 162, 184, 0.8)'  // Not Important - Info
                 ],
                 borderColor: [
-                    'rgba(108, 117, 125, 1)',
+                    'rgba(220, 53, 69, 1)',
                     'rgba(255, 193, 7, 1)',
-                    'rgba(220, 53, 69, 1)'
+                    'rgba(23, 162, 184, 1)'
                 ],
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Task Priority Distribution'
                 }
             }
         }
