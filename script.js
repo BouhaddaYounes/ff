@@ -108,13 +108,12 @@ updateBtn.onclick = function() {
   const updateNameInput = document.querySelector('#update-name-input');
   const updatePriorityInput = document.querySelector('#update-priority-input');
   
-  authenticatedFetch('http://localhost:5502/api/update', {
-      method: 'PATCH',
+  authenticatedFetch(`http://localhost:5502/api/update/${updateNameInput.dataset.id}`, {
+      method: 'PUT',
       headers: {
           'Content-type': 'application/json'
       },
       body: JSON.stringify({
-          id: updateNameInput.dataset.id,
           name: updateNameInput.value,
           priority: updatePriorityInput.value
       })

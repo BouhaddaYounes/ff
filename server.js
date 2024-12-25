@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 
 dotenv.config();
-const dbService = require('./dbService');
+const dbService = require('./dbservice');
 
 // Configure CORS
 app.use(cors());
