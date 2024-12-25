@@ -1,0 +1,56 @@
+/* Chart container sizing */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+/* Card hover animation */
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Summary card icons */
+.rounded-circle {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 0.5em 1em;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Recent activity table */
+.table th {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.table td {
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+    
+    .table td {
+        max-width: 150px;
+    }
+}
